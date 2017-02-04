@@ -1,33 +1,32 @@
 ########################
 # Function for Leave-One-Out Cross Validation.
 # Example with a Generalized Additive Model.
-# Replace 'df', 'Target', 'x', 'Var' and 'model_list'
+# Replace 'DF' and 'l_models'
 ########################
 
-CV_Score <- function(my_model) {
-  for (i in 1:length(df$'Target')-1){ 
-    # Define the data frame without the respective year
-    df.newframe <- subset(df,'Var'!='x'-i)
-    #Estimate model for remaining sample
-    b1<- gam(my_model,data=df.newframe)
-    #Get Subset for which we want to predict and calc. y_hat
-    df.specific<-subset(df,'Var'=='x'-i)
-    y_hat <-predict(b1,type="response",newdata=new)
-    y_real <- df.specific$'Target'
-    #Get the squared error and calculate the mean
-    error_sq <- (y_real-y_hat)^2
-    m_value[i] = mean(error_sq)
-  }
-  #Calculate Mean of the Mean Squared Error as the final CV score 
-  CV_Score <- mean(m_value)
-  return(CV_Score)
-}  
-
-m_value<-rep(NA,length(df$'Target')-1)
-CV<-rep(NA,'models')
-model_list <- c(my_model1, my_model2,my_model3, my_model4,..)
-k = 1
-for (my_model in model_list) {
-  CV[k] <-CV_Score(my_model)
-  k = k+1
+CV_top <- function(nbr,l_model,my_df) {
+  dim_cv <- as.list(0:(length(my_df$Data)-1))
+  l_model<-list(l_model)
+  Estimates<-mapply(CV_bottom,dim_cv,l_model,list(my_df))
+  return(mean(Estimates))
 }
+
+CV_bottom<-function(counter,cv_model,cv_df) {
+  # Set the counter 
+  i <- counter
+  # Subset without target observation
+  new.df <- subset(cv_df,Date !=length(cv_df$Data) - i)
+  # Estimate Model
+  b1 <-eval(parse(text=cv_model))
+  # Get target observation
+  specific.df <- subset(cv_df,Date ==length(cv_df$Data) - i)
+  # Get yhat & ytrue
+  y_hat <- predict(b1,newdata=data.frame(specific.df)[2],type="response",data=new.df) 
+  y_true <- specific.df$Data
+  # Get Squared Error
+  m_value <- (y_true-y_hat)^2
+  return(m_value)
+}
+
+l_models <- as.list(c(my_model1,my_model2,my_model3,my_model4))
+CV<-mapply(CV_top,1,l_models,list(DF))
