@@ -1,5 +1,5 @@
 ########################
-# Function for Leave-One-Out Cross Validation.
+# Function for Leave-One-Out Cross Validation
 # Replace 'DF' and 'l_models'
 # Specify models like: my_model <- "gamlss(Data ~ pb(Date,df=2),data=new.df)"
 ########################
